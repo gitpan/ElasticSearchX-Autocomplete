@@ -1,0 +1,35 @@
+NAME
+    ElasticSearchX::Autocomplete - Efficient autocomplete with term
+    frequency and geolocation
+
+VERSION
+    Version 0.01 - alpha
+
+DESCRIPTION
+    "ElasticSearchX::Autocomplete" helps you to build autocomplete indexes
+    from your data, taking term frequency and (optionally) geolocation into
+    account.
+
+    This is an alpha module, and still requires documentation and tests.
+    Here be dragons.
+
+SEE ALSO
+    ElasticSearch, <http://www.elasticsearch.org>
+
+BUGS
+    If you have any suggestions for improvements, or find any bugs, please
+    report them to
+    <https://github.com/clintongormley/ElasticSearchX-Autocomplete/issues>.
+    I will be notified, and then you'll automatically be notified of
+    progress on your bug as I make changes.
+
+AUTHOR
+    Clinton Gormley, <clinton@traveljury.com>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2011 by Clinton Gormley
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8.7 or, at
+    your option, any later version of Perl 5 you may have available.
+
