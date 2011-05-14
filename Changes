@@ -1,5 +1,13 @@
 Revision history for ElasticSearchX-Autocomplete
 
+0.05    2011-05-14
+        ElasticSearchX::Autocomplete::Indexer::Type was not being passed the
+        JSON object
+
+0.04    2011-05-11
+        Added some missing dependencies
+        Fixed a bug when doing a location based search
+
 0.03    2011-05-09
         Changed the structure of the docs to store one doc per context,
         instead of listing each context inside a rank object
