@@ -104,12 +104,12 @@ sub _create_accessors {
     my $class = shift;
     for (@_) {
         my ( $name, $default ) = @$_;
-        $default = $default ? ' || ' . $default : '';
+        $default ||= 0;
         eval <<SUB or croak $@;
             sub ${class}::${name} {
                 my \$self = shift;
                 if (\@_) { \$self->{_$name} = shift() }
-                return \$self->{_$name} $default;
+                return defined \$self->{_$name} ? \$self->{_$name} : $default;
             }
             1;
 SUB
@@ -117,13 +117,27 @@ SUB
     }
 }
 
+
+1
+
+__END__
+=pod
+
 =head1 NAME
 
 ElasticSearchX::Autocomplete::Util
 
+=head1 VERSION
+
+version 0.06
+
 =head1 DESCRIPTION
 
 No user servicable parts in here.
+
+=head1 NAME
+
+ElasticSearchX::Autocomplete::Util
 
 =head1 SEE ALSO
 
@@ -141,7 +155,16 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
+=head1 AUTHOR
+
+Clinton Gormley <drtech@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Clinton Gormley.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
 
-1

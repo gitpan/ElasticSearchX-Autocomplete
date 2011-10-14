@@ -1,34 +1,43 @@
+
 use strict;
 use warnings;
-use Module::Build;
 
-my $builder = Module::Build->new(
-    module_name       => 'ElasticSearchX::Autocomplete',
-    license           => 'perl',
-    dist_author       => q{Clinton Gormley <drtech@cpan.org>},
-    dist_version_from => 'lib/ElasticSearchX/Autocomplete.pm',
-    build_requires    => {
-        'Test::More'      => 0,
-        'Test::Exception' => 0,
-    },
-    add_to_cleanup     => ['ElasticSearchX-*'],
-    create_makefile_pl => 'traditional',
-    requires           => {
-        'ElasticSearch'      => '0.37',
-        'JSON'               => 0,
-        'Text::Unidecode'    => 0,
-        'Unicode::Normalize' => 0,
-        'List::MoreUtils'    => 0,
-    },
-    recommends => { 'JSON::XS' => 0, },
-    meta_merge => {
-        resources => {
-            repository =>
-                'https://github.com/clintongormley/ElasticSearchX-Autocomplete/',
-            bugtracker =>
-                "https://github.com/clintongormley/ElasticSearchX-Autocomplete/issues",
-        }
-    },
+use Module::Build 0.3601;
+
+
+my %module_build_args = (
+  "build_requires" => {
+    "Module::Build" => "0.3601",
+    "Test::More" => 0
+  },
+  "configure_requires" => {
+    "Module::Build" => "0.3601"
+  },
+  "dist_abstract" => "Efficient autocomplete with term frequency and geolocation",
+  "dist_author" => [
+    "Clinton Gormley <drtech\@cpan.org>"
+  ],
+  "dist_name" => "ElasticSearchX-Autocomplete",
+  "dist_version" => "0.06",
+  "license" => "perl",
+  "module_name" => "ElasticSearchX::Autocomplete",
+  "recommends" => {},
+  "recursive_test_files" => 1,
+  "requires" => {
+    "Carp" => 0,
+    "ElasticSearch" => "0.46",
+    "Exporter" => 0,
+    "JSON" => 0,
+    "List::MoreUtils" => 0,
+    "Text::Unidecode" => 0,
+    "Unicode::Normalize" => 0,
+    "strict" => 0,
+    "warnings" => 0
+  },
+  "script_files" => []
 );
 
-$builder->create_build_script();
+
+my $build = Module::Build->new(%module_build_args);
+
+$build->create_build_script;

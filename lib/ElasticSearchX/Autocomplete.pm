@@ -4,13 +4,13 @@ use strict;
 use warnings;
 use Carp;
 
-use ElasticSearch 0.37;
+our $VERSION = '0.06';
+use ElasticSearch 0.46;
 use ElasticSearchX::Autocomplete::Util qw(_create_accessors _params );
 use ElasticSearchX::Autocomplete::Type();
 use JSON();
 
 our $JSON    = JSON->new()->utf8(1);
-our $VERSION = '0.05';
 
 __PACKAGE__->_create_accessors(
     ['cache'],
@@ -75,14 +75,21 @@ sub indexer {
     );
 }
 
+# ABSTRACT: Efficient autocomplete with term frequency and geolocation
+
+
+1
+
+__END__
+=pod
+
 =head1 NAME
 
-ElasticSearchX::Autocomplete - Efficient autocomplete with term frequency
-and geolocation
+ElasticSearchX::Autocomplete - Efficient autocomplete with term frequency and geolocation
 
 =head1 VERSION
 
-Version 0.05 - alpha
+version 0.06
 
 =head1 DESCRIPTION
 
@@ -116,7 +123,16 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
+=head1 AUTHOR
+
+Clinton Gormley <drtech@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Clinton Gormley.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
 
-1

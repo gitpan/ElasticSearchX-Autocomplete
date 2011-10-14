@@ -1,40 +1,30 @@
 ---
-abstract: "Efficient autocomplete with term frequency\nand geolocation"
+abstract: 'Efficient autocomplete with term frequency and geolocation'
 author:
   - 'Clinton Gormley <drtech@cpan.org>'
 build_requires:
-  Test::Exception: 0
+  Module::Build: 0.3601
   Test::More: 0
 configure_requires:
-  Module::Build: 0.36
-generated_by: 'Module::Build version 0.3603'
+  Module::Build: 0.3601
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300000, CPAN::Meta::Converter version 2.110930'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: ElasticSearchX-Autocomplete
-provides:
-  ElasticSearchX::Autocomplete:
-    file: lib/ElasticSearchX/Autocomplete.pm
-    version: 0.05
-  ElasticSearchX::Autocomplete::Indexer:
-    file: lib/ElasticSearchX/Autocomplete/Indexer.pm
-  ElasticSearchX::Autocomplete::Indexer::Type:
-    file: lib/ElasticSearchX/Autocomplete/Indexer/Type.pm
-  ElasticSearchX::Autocomplete::Type:
-    file: lib/ElasticSearchX/Autocomplete/Type.pm
-  ElasticSearchX::Autocomplete::Util:
-    file: lib/ElasticSearchX/Autocomplete/Util.pm
-recommends:
-  JSON::XS: 0
 requires:
-  ElasticSearch: 0.37
+  Carp: 0
+  ElasticSearch: 0.46
+  Exporter: 0
   JSON: 0
   List::MoreUtils: 0
   Text::Unidecode: 0
   Unicode::Normalize: 0
+  strict: 0
+  warnings: 0
 resources:
   bugtracker: https://github.com/clintongormley/ElasticSearchX-Autocomplete/issues
-  license: http://dev.perl.org/licenses/
-  repository: https://github.com/clintongormley/ElasticSearchX-Autocomplete/
-version: 0.05
+  repository: git://github.com/clintongormley/ElasticSearchX-Autocomplete.git
+version: 0.06

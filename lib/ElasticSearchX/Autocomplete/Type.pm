@@ -15,7 +15,10 @@ __PACKAGE__->_create_accessors(
     ['debug'],
     ['JSON'],
     ['tokenizer'],
+    ['formatter'],
     ['ascii_folding'],
+    ['geoloc'],
+    ['multi_tokens'],
     [ 'max_results',        10 ],
     [ 'min_length',         1 ],
     [ 'max_tokens',         10 ],
@@ -36,7 +39,8 @@ sub new {
 
     my $self = {
         _ascii_folding => 1,
-        _tokenizer     => \&_tokenize,
+        _tokenizer     => $class->can('_tokenize'),
+        _formatter     => $class->can('_format'),
         _debug         => 0
     };
 
@@ -121,7 +125,11 @@ sub _suggestions {
 }
 
 #===================================
-sub format_suggestions {
+sub format_suggestions { $_[0]->{_formatter}->(@_) }
+#===================================
+
+#===================================
+sub _format {
 #===================================
     my $self    = shift;
     my $params  = shift;
@@ -185,47 +193,46 @@ sub _retrieve_suggestions {
 #===================================
     my $self   = shift;
     my $params = shift;
-
     my @tokens = @{ $params->{tokens} };
-    my $qs = join ' ', @tokens;
+    my $qs     = join ' ', @tokens;
 
     my $ngrams
         = $params->{loose}
         ? $qs
         : join ' ', map {"+$_"} @tokens;
 
+    my $tokens_field = $self->multi_tokens ? 'tokens.tokens' : 'tokens';
     my $token_query = {
-        bool => {
-            must   => [ { field => { 'tokens.ngram' => $ngrams } } ],
-            should => [ {
-                    field => {
-                        'tokens' =>
-                            { query => $qs, boost => $params->{match_boost} }
-                    }
+        -bool => {
+            must   => { "$tokens_field.ngram" => { -qs => $ngrams } },
+            should => {
+                $tokens_field => {
+                    '=' => { query => $qs, boost => $params->{match_boost} }
                 }
-            ]
+            }
         }
     };
 
-    my @filters = (
-        { term => { context => $params->{context} } },
+    if ( $self->multi_tokens ) {
+        $token_query = {
+            context => $params->{context},
+            -nested => {
+                path       => 'tokens',
+                score_mode => 'max',
+                query      => $token_query
+            }
+        };
+    }
+
+    $token_query->{-filter} = {
+        context => $params->{context},
         @{ $self->suggestion_filters }
-    );
-    my $filter = @filters > 1 ? { and => \@filters } : $filters[0];
+    };
 
     my $search = {
-        fields => ['_source'],
-        query => {
-            custom_score => {
-                query => {
-                    filtered => {
-                        filter => $filter,
-                        query  => $token_query,
-                    }
-                },
-                script => "_score * 2 +  doc['rank'].value",
-            },
-        }
+        explain => 0,
+        fields  => ['_source'],
+        queryb  => $token_query,
     };
     return $self->_location_clause( $params, $search );
 
@@ -238,31 +245,45 @@ sub _location_clause {
     my $params = shift;
     my $search = shift;
 
-    my $loc = $params->{location};
-    return $search
-        unless $loc && defined $loc->{lat} && defined $loc->{lon};
+    my $loc = $params->{location} or return $search;
+    my $lat = $loc->{lat};
+    my $lon = $loc->{lon};
 
-    $loc = {
-        boost  => 5,
-        radius => 500,
-        drop   => 0.8,
-        %$loc
+    return $search unless defined $lat && defined $lon;
+
+    my $radius = $loc->{radius} || 1000;
+    my $exp    = $loc->{exp}    || 2;
+    my $steps  = $loc->{steps}  || 3;
+    my $boost  = $loc->{boost}  || 2;
+    my $step   = ( $boost - 1 ) / $steps;
+
+    my @filters;
+    for ( reverse 0 .. $steps - 1 ) {
+        unshift @filters,
+            {
+            boost  => $boost - $step * $_,
+            filter => {
+                location => {
+                    -geo_distance => {
+                        location => { lat => $lat, lon => $lon },
+                        distance => $radius . 'km'
+                    }
+                }
+            },
+            };
+        $radius /= $exp;
+    }
+
+    $search->{queryb} = {
+        -custom_filters_score => {
+            query   => $search->{queryb},
+            filters => \@filters
+        }
     };
-    my $clause     = $search->{query}{custom_score};
-    my $old_script = $clause->{script};
-
-    $clause->{script} = <<SCRIPT;
-        distance  = doc['location'].distanceInKm(lat,lon);
-        loc_boost = boost * exp( -pow(distance/radius,drop));
-        $old_script + loc_boost;
-SCRIPT
-
-    $clause->{params} = $loc;
-
     $search->{script_fields} = {
         distance => {
             script => "floor(doc['location'].distanceInKm(lat,lon))",
-            params => $loc
+            params => { lat => $lat, lon => $lon },
         }
     };
 
@@ -277,26 +298,25 @@ sub _retrieve_popular {
     my $params  = shift;
     my $context = $params->{context};
 
-    my @filters = ( { term => { context => $context } },
-        @{ $self->popular_filters } );
+    my @filters = ( { context => $context }, @{ $self->popular_filters } );
 
     if ( my $loc = $params->{location} ) {
         my $radius = $loc->{radius} || 500;
         push @filters,
             {
-            geo_distance => {
-                distance => $radius . 'km',
-                location => { lat => $loc->{lat}, lon => $loc->{lon} }
+            location => {
+                -geo_distance => {
+                    location => { lat => $loc->{lat}, lon => $loc->{lon} },
+                    distance => $radius . 'km',
+                }
             }
             };
     }
 
-    my $filter = @filters > 1 ? { and => \@filters } : $filters[0];
-
     return {
         fields => ['_source'],
-        query => { constant_score => { filter => $filter } },
-        sort => [ { rank => 'desc' }, { label => 'asc' } ],
+        queryb => { -filter => { -and => \@filters } },
+        sort   => [ { 'rank' => 'desc' }, { 'label' => 'asc' } ],
     };
 
 }
@@ -385,13 +405,27 @@ sub stop_words {
     return $self->{_stop_words} || {};
 }
 
+
+1
+
+__END__
+=pod
+
 =head1 NAME
 
 ElasticSearchX::Autocomplete::Type
 
+=head1 VERSION
+
+version 0.06
+
 =head1 DESCRIPTION
 
 To follow
+
+=head1 NAME
+
+ElasticSearchX::Autocomplete::Type
 
 =head1 SEE ALSO
 
@@ -413,7 +447,16 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
+=head1 AUTHOR
+
+Clinton Gormley <drtech@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Clinton Gormley.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
 
-1

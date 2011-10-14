@@ -59,6 +59,7 @@ sub index_phrases {
                 id    => delete $entry->{doc_id},
                 data  => {
                     rank    => $rank,
+                    _boost  => $rank / 2,
                     context => $context,
                     %$entry,
                 }
@@ -231,47 +232,77 @@ sub delete_type {
 #===================================
 sub type_defn {
 #===================================
-    my $self  = shift;
-    my $type  = $self->type;
+    my $self = shift;
+    my $type = $self->type;
+
+    my %props = (
+        %{ $type->custom_fields },
+        rank    => { type => 'integer' },
+        label   => { type => 'string', index => 'not_analyzed' },
+        context => { type => 'string', index => 'not_analyzed' }
+    );
+
+    if ( $type->geoloc ) {
+        $props{location} = { type => 'geo_point' };
+    }
+
     my $ascii = $type->ascii_folding ? 'ascii_' : '';
+    my $tokens = {
+        type   => 'multi_field',
+        fields => {
+            tokens => {
+                type     => 'string',
+                analyzer => $ascii . 'std',
+            },
+            ngram => {
+                type            => 'string',
+                index_analyzer  => $ascii . 'edge_ngram',
+                search_analyzer => $ascii . 'std',
+            },
+        }
+    };
+
+    $props{tokens}
+        = $type->multi_tokens
+        ? {
+        type       => 'nested',
+        properties => { tokens => $tokens },
+        }
+        : $tokens;
+
     return {
         index      => $self->index,
         type       => $type->name,
         _all       => { enabled => 0 },
         _source    => { compress => 1 },
-        properties => {
-            tokens => {
-                type   => 'multi_field',
-                fields => {
-                    tokens => {
-                        type     => 'string',
-                        analyzer => $ascii . 'std',
-                    },
-                    ngram => {
-                        type            => 'string',
-                        index_analyzer  => $ascii . 'edge_ngram',
-                        search_analyzer => $ascii . 'std',
-                    },
-                }
-            },
-            label    => { type => 'string', index => 'not_analyzed' },
-            rank     => { type => 'integer' },
-            location => { type => 'geo_point' },
-            context  => { type => 'string', index => 'not_analyzed' },
-            %{ $type->custom_fields },
-        }
+        _boost     => { name => '_boost', null_value => 1 },
+        properties => \%props,
     };
 }
 
 #===================================
 
+
+1
+
+__END__
+=pod
+
 =head1 NAME
 
 ElasticSearchX::Autocomplete::Indexer::Type
 
+=head1 VERSION
+
+version 0.06
+
 =head1 DESCRIPTION
 
 To follow
+
+=head1 NAME
+
+ElasticSearchX::Autocomplete::Indexer::Type
 
 =head1 SEE ALSO
 
@@ -289,7 +320,16 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
+=head1 AUTHOR
+
+Clinton Gormley <drtech@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Clinton Gormley.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
 
-1
