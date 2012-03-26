@@ -60,8 +60,9 @@ sub _reopen {
 #===================================
     my $self  = shift;
     my $alias = $self->alias;
-    my $index = $self->es->get_aliases->{aliases}{$alias}[0]
-        or croak "Cannot edit existing index - Alias '$alias' doesn't exist";
+    my ($index) = keys %{ $self->es->get_aliases( index => $alias ) };
+    croak "Cannot edit existing index - Alias '$alias' doesn't exist"
+        unless $index;
     $self->cleanup(0);
     $self->index($index);
 }
@@ -98,7 +99,7 @@ sub deploy {
     }
 
     my $alias = $self->alias;
-    my $old = $es->get_aliases( index => $alias )->{aliases}{$alias}[0];
+    my ($old) = keys %{ $es->get_aliases( index => $alias ) };
     if ( !$old or $old ne $index ) {
         my @actions = { add => { index => $index, alias => $alias } };
 
@@ -131,7 +132,7 @@ sub type {
         es    => $self->es,
         debug => $self->debug,
         type  => $type,
-        JSON => $self->JSON,
+        JSON  => $self->JSON,
         index => $self->init
     );
 }
@@ -210,7 +211,6 @@ sub DESTROY {
 }
 
 
-
 1
 
 __END__
@@ -222,7 +222,7 @@ ElasticSearchX::Autocomplete::Indexer
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 DESCRIPTION
 
@@ -254,7 +254,7 @@ Clinton Gormley <drtech@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Clinton Gormley.
+This software is copyright (c) 2012 by Clinton Gormley.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

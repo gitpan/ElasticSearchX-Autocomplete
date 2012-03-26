@@ -18,14 +18,14 @@ my %module_build_args = (
     "Clinton Gormley <drtech\@cpan.org>"
   ],
   "dist_name" => "ElasticSearchX-Autocomplete",
-  "dist_version" => "0.06",
+  "dist_version" => "0.07",
   "license" => "perl",
   "module_name" => "ElasticSearchX::Autocomplete",
   "recommends" => {},
   "recursive_test_files" => 1,
   "requires" => {
     "Carp" => 0,
-    "ElasticSearch" => "0.46",
+    "ElasticSearch" => "0.52",
     "Exporter" => 0,
     "JSON" => 0,
     "List::MoreUtils" => 0,

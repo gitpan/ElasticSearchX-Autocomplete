@@ -16,7 +16,7 @@ meta-spec:
 name: ElasticSearchX-Autocomplete
 requires:
   Carp: 0
-  ElasticSearch: 0.46
+  ElasticSearch: 0.52
   Exporter: 0
   JSON: 0
   List::MoreUtils: 0
@@ -27,4 +27,4 @@ requires:
 resources:
   bugtracker: https://github.com/clintongormley/ElasticSearchX-Autocomplete/issues
   repository: git://github.com/clintongormley/ElasticSearchX-Autocomplete.git
-version: 0.06
+version: 0.07

@@ -4,13 +4,13 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.06';
-use ElasticSearch 0.46;
+our $VERSION = '0.07';
+use ElasticSearch 0.52;
 use ElasticSearchX::Autocomplete::Util qw(_create_accessors _params );
 use ElasticSearchX::Autocomplete::Type();
 use JSON();
 
-our $JSON    = JSON->new()->utf8(1);
+our $JSON = JSON->new()->utf8(1);
 
 __PACKAGE__->_create_accessors(
     ['cache'],
@@ -89,7 +89,7 @@ ElasticSearchX::Autocomplete - Efficient autocomplete with term frequency and ge
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 DESCRIPTION
 
@@ -129,7 +129,7 @@ Clinton Gormley <drtech@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Clinton Gormley.
+This software is copyright (c) 2012 by Clinton Gormley.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
